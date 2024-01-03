@@ -11,6 +11,12 @@ class VisualNode : GUIComponent {
     public Vector2 pos; //pos within the graph
     public String name;
 
+    class BoxListenerForNode : Container.BoxListener {
+        public override void OnChange() {
+            component.Reposition(container.box.pos + ((VisualNode) component).pos);
+        }
+    }
+
     public VisualNode(UpdateNotifier notifier, Node gameNode, Vector2 pos) : base(notifier) {
         Resize(Vector2.One * 100);
         this.pos = pos;
@@ -19,9 +25,7 @@ class VisualNode : GUIComponent {
         this.gameNode = gameNode;
         name = gameNode.GetName();
 
-        Program.userInterface.nodeContainer.Add(this, delegate (ContentInfo contentInfo) {
-            contentInfo.component.Reposition(contentInfo.container.box.pos + pos);
-        });
+        Program.userInterface.nodeContainer.Add(this, new BoxListenerForNode());
     }
 
     public override void Draw() {
@@ -75,7 +79,7 @@ class VisualEdge : GUIComponent {
 
     public VisualEdge(UpdateNotifier notifier, Edge gameEdge, VisualNode nodeFrom, VisualNode nodeTo) : base(notifier) {
         this.gameEdge = gameEdge; this.nodeFrom = nodeFrom; this.nodeTo = nodeTo;
-        Program.userInterface.edgeContainer.Add(this, ContainerBoxChangeListeners.NONE);
+        Program.userInterface.edgeContainer.Add(this, new Container.BoxListeners.None());
     }
 
     public override void Draw() {

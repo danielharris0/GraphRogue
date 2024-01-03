@@ -1,28 +1,43 @@
 
 namespace GUI {
 
-    using ContainerBoxChangeListener = Action<ContentInfo>;
-
     public class ContentInfo { //A component & how it relates to its container
 		public GUIComponent component;
 		public Container container;
 		public int id;
-		public ContainerBoxChangeListener containerBoxChangeListener; //contributes the container's part to the content's box whenever the container's box changes
-		public ContentInfo(GUIComponent component, Container container, int id, ContainerBoxChangeListener containerBoxChangeListener) {
+		public Container.BoxListener containerBoxChangeListener; //contributes the container's part to the content's box whenever the container's box changes
+		public ContentInfo(GUIComponent component, Container container, int id, Container.BoxListener containerBoxChangeListener) {
 			this.component = component; this.container = container; this.id = id; this.containerBoxChangeListener = containerBoxChangeListener;
 		}
 	}
 
 
 
+
     public class Container : GUIComponent {
 
-		public static class ContainerBoxChangeListeners {
-            public static ContainerBoxChangeListener MATCH_BOX = delegate (ContentInfo contentInfo) {
-                contentInfo.component.Resize(contentInfo.container.box.size);
-                contentInfo.component.Reposition(contentInfo.container.box.pos);
-            };
-            public static ContainerBoxChangeListener NONE = delegate (ContentInfo contentInfo) { };
+        public abstract class BoxListener {
+
+            protected Container container;
+            protected GUIComponent component;
+
+            public void Init(Container container, GUIComponent component) {
+				this.container = container; this.component = component;	
+			}
+            public abstract void OnChange();
+        }
+
+		public static class BoxListeners {
+            public class MatchBox : BoxListener {
+                public override void OnChange() {
+                    component.Resize(container.box.size);
+                    component.Reposition(container.box.pos);
+                }
+            }
+
+            public class None : BoxListener {
+                public override void OnChange() { } //Do Nothing
+            }
         }
 
 
@@ -34,17 +49,18 @@ namespace GUI {
 			set {
 				_box = value;
 				for (int i = 0; i< contents.Count; i++) {
-					contents[i].containerBoxChangeListener.Invoke(contents[i]);
+					contents[i].containerBoxChangeListener.OnChange();
 				}
 			}
 		}
 		public Container(UpdateNotifier updateNotifier) : base(updateNotifier) { }
 
-		public void Add(GUIComponent component, ContainerBoxChangeListener containerBoxChangeListener) {
-			ContentInfo contentInfo = new ContentInfo(component, this, contents.Count, containerBoxChangeListener);
+		public void Add(GUIComponent component, Container.BoxListener boxListener) {
+			ContentInfo contentInfo = new ContentInfo(component, this, contents.Count, boxListener);
 			contents.Add(contentInfo);
 			component.contentInfo = contentInfo;
-            containerBoxChangeListener.Invoke(contentInfo);
+			boxListener.Init(this, component);
+            boxListener.OnChange();
         }
 
 		public override void Draw() {

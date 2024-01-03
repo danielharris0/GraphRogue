@@ -17,12 +17,12 @@ public class UserInterface {
 
     public void Load() {
         graphContainer = new Container(updateNotifier);
-        Program.windowContainer.Add(graphContainer, ContainerBoxChangeListeners.MATCH_BOX);
+        Program.windowContainer.Add(graphContainer, new Container.BoxListeners.MatchBox());
 
         edgeContainer = new Container(updateNotifier);
-        graphContainer.Add(edgeContainer, ContainerBoxChangeListeners.MATCH_BOX);
+        graphContainer.Add(edgeContainer, new Container.BoxListeners.MatchBox());
         nodeContainer = new Container(updateNotifier);
-        graphContainer.Add(nodeContainer, ContainerBoxChangeListeners.MATCH_BOX);
+        graphContainer.Add(nodeContainer, new Container.BoxListeners.MatchBox());
     }
 
     public void RegenerateGraph(Node root) {
